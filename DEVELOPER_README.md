@@ -674,6 +674,240 @@ cron.schedule("0 0 1 */3 *", async () => {
 
 ---
 
+## 🧪 Testing
+
+### Test Suite Overview
+
+Comprehensive test coverage across all contracts:
+
+```
+test/
+├── Constitution.test.js        # Constitutional invariants (50+ tests)
+├── IMPACTToken.test.js          # Soulbound token with decay (40+ tests)
+├── TreasuryManagement.test.js   # Treasury operations (35+ tests)
+├── QuadraticFunding.test.js     # Pairwise bonding QF (30+ tests)
+├── ConflictRegistry.test.js     # COI disclosure (25+ tests)
+└── Integration.test.js          # Cross-contract workflows (20+ tests)
+```
+
+### Running Tests
+
+```bash
+# Install dependencies
+npm install
+
+# Compile contracts
+npm run compile
+
+# Run all tests
+npm test
+
+# Run specific test file
+npx hardhat test test/Constitution.test.js
+
+# Run with gas reporting
+npm run test:gas
+
+# Generate coverage report
+npm run test:coverage
+```
+
+### Test Categories
+
+**Unit Tests**: Test individual contract functions in isolation
+- Constitutional constant verification
+- Minting and decay mechanics
+- Treasury cap enforcement
+- QF matching calculation
+
+**Integration Tests**: Test cross-contract workflows
+- Full DAO lifecycle (mint → decay → QF → distribute)
+- Founder de-escalation over time
+- Sybil resistance in QF rounds
+- Conflict resolution flow
+
+### Expected Test Output
+
+```
+  Constitution
+    Mission
+      ✔ should have correct mission statement
+    Financial Invariants
+      ✔ should have MIN_PUBLIC_GOODS_ALLOCATION = 85%
+      ✔ should have MAX_OPERATIONAL_BUDGET_ANNUAL = $400k
+      ...
+
+  IMPACTToken
+    Minting
+      ✔ should mint IMPACT to Builder category
+      ✔ should apply 2x new contributor bonus
+      ✔ should enforce individual cap (2% of supply)
+    Transfer Restrictions
+      ✔ should revert on transfer (soulbound)
+      ...
+
+  Integration Tests
+    Full DAO Lifecycle
+      ✔ should complete a full quarterly cycle
+      ...
+
+  200+ passing tests
+```
+
+---
+
+## 🚀 Deployment
+
+### Prerequisites
+
+1. Node.js v18+ and npm
+2. Hardhat environment configured
+3. Network RPC URLs and deployer private key
+4. Sufficient ETH for gas fees
+
+### Environment Setup
+
+Copy the example environment file and configure:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env`:
+
+```env
+# Network RPC URLs
+SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/YOUR_KEY
+OPTIMISM_RPC_URL=https://mainnet.optimism.io
+
+# Deployer private key (without 0x prefix)
+PRIVATE_KEY=your_private_key_here
+
+# API keys for verification
+ETHERSCAN_API_KEY=your_key
+OPTIMISM_ETHERSCAN_API_KEY=your_key
+
+# Initial treasury ($10M in 18 decimals)
+INITIAL_TREASURY=10000000000000000000000000
+
+# Governance multisig address
+GOVERNANCE_MULTISIG=0x...
+```
+
+### Local Deployment
+
+```bash
+# Start local Hardhat node
+npm run node
+
+# Deploy with test data (in another terminal)
+npx hardhat run scripts/deploy-local.js --network localhost
+```
+
+### Testnet Deployment (Sepolia)
+
+```bash
+# Compile contracts
+npm run compile
+
+# Deploy to Sepolia
+npx hardhat run scripts/deploy.js --network sepolia
+```
+
+### Mainnet Deployment (Optimism L2)
+
+```bash
+# Deploy to Optimism
+npx hardhat run scripts/deploy.js --network optimism
+```
+
+### Deployment Output
+
+The deployment script will output:
+
+```
+==============================================================
+Public Goods DAO - Contract Deployment
+==============================================================
+Network: optimism
+Chain ID: 10
+
+Deployer: 0x...
+Balance: 0.5 ETH
+
+Deploying Constitution...
+  Constitution deployed: 0x...
+Deploying IMPACTToken...
+  IMPACTToken deployed: 0x...
+Deploying TreasuryManagement...
+  TreasuryManagement deployed: 0x...
+Deploying QuadraticFunding...
+  QuadraticFunding deployed: 0x...
+Deploying ConflictRegistry...
+  ConflictRegistry deployed: 0x...
+
+Setting up roles...
+  Setting IMPACTToken minter...
+  Setting IMPACTToken decay executor...
+  Setting ConflictRegistry citizens house...
+
+==============================================================
+DEPLOYMENT COMPLETE
+==============================================================
+
+Deployed Contracts:
+{
+  "constitution": "0x...",
+  "impactToken": "0x...",
+  "treasury": "0x...",
+  "quadraticFunding": "0x...",
+  "conflictRegistry": "0x..."
+}
+```
+
+### Contract Verification
+
+After deployment, verify contracts on block explorer:
+
+```bash
+# Verify Constitution
+npx hardhat verify --network optimism 0xCONSTITUTION_ADDRESS
+
+# Verify IMPACTToken
+npx hardhat verify --network optimism 0xIMPACT_ADDRESS 0xCONSTITUTION_ADDRESS
+
+# Verify TreasuryManagement
+npx hardhat verify --network optimism 0xTREASURY_ADDRESS \
+  0xCONSTITUTION_ADDRESS \
+  0xIMPACT_ADDRESS \
+  0xGOVERNANCE_ADDRESS \
+  10000000000000000000000000
+
+# Verify QuadraticFunding
+npx hardhat verify --network optimism 0xQF_ADDRESS \
+  0xCONSTITUTION_ADDRESS \
+  0xIMPACT_ADDRESS \
+  0xGOVERNANCE_ADDRESS
+
+# Verify ConflictRegistry
+npx hardhat verify --network optimism 0xCONFLICT_ADDRESS \
+  0xCONSTITUTION_ADDRESS
+```
+
+### Post-Deployment Checklist
+
+- [ ] Verify all contracts on block explorer
+- [ ] Transfer minter role to ReputationRegistry (when deployed)
+- [ ] Transfer decay executor to Chainlink Keepers
+- [ ] Transfer governance to multisig
+- [ ] Fund endowment ($2M minimum)
+- [ ] Create first QF round
+- [ ] Distribute initial IMPACT to founders (15%)
+- [ ] Test emergency pause mechanisms
+- [ ] Monitor for first 30 days
+
+---
+
 ## 📞 Support & Contact
 
 **Documentation**: See TOKEN_MODEL_SPEC_V2.md for full specification
